@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint-and-quality:
+    name: Lint & Code Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install Poetry 2.3.1
+        run: |
+          pip install poetry==2.3.1
+          poetry --version
+
+      - name: Configure Poetry
+        run: |
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
+
+      - name: Install dependencies (main + test_lint group)
+        run: |
+          poetry install --with test_lint
+
+      - name: Run Radon Cyclomatic Complexity
+        run: poetry run radon cc -a -s src/
+
+      - name: Run Radon Maintainability Index
+        run: poetry run radon mi -s src/
+
+      - name: Run Flake8
+        run: poetry run flake8 src/
+
+      - name: Run Bandit (security analysis)
+        run: poetry run bandit -r src/
