@@ -30,7 +30,7 @@ jobs:
 
       - name: Install dependencies (main + test_lint group)
         run: |
-          poetry install --with test_lint
+          poetry install --with test_lint --no-root
 
       - name: Run Radon Cyclomatic Complexity
         run: poetry run radon cc -a -s src/
