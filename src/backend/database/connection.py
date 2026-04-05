@@ -1,7 +1,7 @@
 import sqlite3
 from pathlib import Path
 
-_MIGRATIONS_PATH = Path(__file__).parent / "migrations.sql"
+_MIGRATIONS_DIR = Path(__file__).parent / "migrations"
 
 
 def get_connection(db_path: str = "books.db") -> sqlite3.Connection:
@@ -12,5 +12,6 @@ def get_connection(db_path: str = "books.db") -> sqlite3.Connection:
 
 
 def init_db(conn: sqlite3.Connection) -> None:
-    sql = _MIGRATIONS_PATH.read_text(encoding="utf-8")
-    conn.executescript(sql)
+    for migration in sorted(_MIGRATIONS_DIR.glob("*.sql")):
+        sql = migration.read_text(encoding="utf-8")
+        conn.executescript(sql)

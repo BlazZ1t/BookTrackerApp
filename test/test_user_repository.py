@@ -6,7 +6,7 @@ from src.backend.database.repository.users import (
     get_user_by_id,
     get_user_by_username,
 )
-from src.backend.models.user import UserRecord
+from src.backend.database.models.user import UserRecord
 
 
 def test_create_user_returns_record(db_conn):

@@ -8,7 +8,7 @@ from src.backend.database.repository.books import (
     get_books,
     update_book,
 )
-from src.backend.models.book import BookRecord
+from src.backend.database.models.book import BookRecord
 
 
 @pytest.fixture
@@ -117,7 +117,7 @@ def test_get_books_returns_only_own_books(db_conn, user, other_user):
         status="not_started",
     )
 
-    books = get_books(db_conn, user_id=user.id)
+    books, _ = get_books(db_conn, user_id=user.id)
 
     assert len(books) == 1
     assert books[0].title == "Book A"
@@ -139,7 +139,7 @@ def test_get_books_no_filter_returns_all(db_conn, user):
         status="reading",
     )
 
-    books = get_books(db_conn, user_id=user.id)
+    books, _ = get_books(db_conn, user_id=user.id)
 
     assert len(books) == 2
 
@@ -160,7 +160,7 @@ def test_get_books_filter_by_title_partial(db_conn, user):
         status="not_started",
     )
 
-    books = get_books(db_conn, user_id=user.id, title="harry")
+    books, _ = get_books(db_conn, user_id=user.id, title="harry")
 
     assert len(books) == 1
     assert books[0].title == "Harry Potter"
@@ -182,7 +182,7 @@ def test_get_books_filter_by_author_partial(db_conn, user):
         status="not_started",
     )
 
-    books = get_books(db_conn, user_id=user.id, author="rowling")
+    books, _ = get_books(db_conn, user_id=user.id, author="rowling")
 
     assert len(books) == 1
     assert books[0].author == "J.K. Rowling"
@@ -206,7 +206,7 @@ def test_get_books_filter_by_genre_exact(db_conn, user):
         genre="Fantasy",
     )
 
-    books = get_books(db_conn, user_id=user.id, genre="fantasy")
+    books, _ = get_books(db_conn, user_id=user.id, genre="fantasy")
 
     assert len(books) == 1
     assert books[0].title == "The Hobbit"
@@ -228,7 +228,7 @@ def test_get_books_filter_by_status_exact(db_conn, user):
         status="completed",
     )
 
-    books = get_books(db_conn, user_id=user.id, status="reading")
+    books, _ = get_books(db_conn, user_id=user.id, status="reading")
 
     assert len(books) == 1
     assert books[0].title == "Book A"
@@ -244,9 +244,13 @@ def test_get_books_filter_case_insensitive(db_conn, user):
         genre="FANTASY",
     )
 
-    assert len(get_books(db_conn, user_id=user.id, title="harry")) == 1
-    assert len(get_books(db_conn, user_id=user.id, author="rowling")) == 1
-    assert len(get_books(db_conn, user_id=user.id, genre="fantasy")) == 1
+    books_by_title, _ = get_books(db_conn, user_id=user.id, title="harry")
+    books_by_author, _ = get_books(db_conn, user_id=user.id, author="rowling")
+    books_by_genre, _ = get_books(db_conn, user_id=user.id, genre="fantasy")
+
+    assert len(books_by_title) == 1
+    assert len(books_by_author) == 1
+    assert len(books_by_genre) == 1
 
 
 def test_get_books_combined_filters(db_conn, user):
@@ -275,7 +279,7 @@ def test_get_books_combined_filters(db_conn, user):
         genre="Fantasy",
     )
 
-    books = get_books(
+    books, _ = get_books(
         db_conn, user_id=user.id, genre="Sci-Fi", status="reading"
     )
 
@@ -291,9 +295,119 @@ def test_get_books_no_match_returns_empty(db_conn, user):
         status="not_started",
     )
 
-    books = get_books(db_conn, user_id=user.id, title="nonexistent")
+    books, _ = get_books(db_conn, user_id=user.id, title="nonexistent")
 
     assert books == []
+
+
+# --- get_books pagination ---
+
+def test_get_books_limit(db_conn, user):
+    for i in range(5):
+        create_book(
+            db_conn,
+            user_id=user.id,
+            title=f"Book {i}",
+            author="Author",
+            status="not_started",
+        )
+
+    books, _ = get_books(db_conn, user_id=user.id, limit=3)
+
+    assert len(books) == 3
+
+
+
+def test_get_books_next_token_is_none_on_last_page(db_conn, user):
+    for i in range(3):
+        create_book(
+            db_conn,
+            user_id=user.id,
+            title=f"Book {i}",
+            author="Author",
+            status="not_started",
+        )
+
+    _, next_token = get_books(db_conn, user_id=user.id, limit=10)
+
+    assert next_token is None
+
+
+def test_get_books_next_token_fetches_next_page(db_conn, user):
+    for i in range(5):
+        create_book(
+            db_conn,
+            user_id=user.id,
+            title=f"Book {i}",
+            author="Author",
+            status="not_started",
+        )
+
+    first_page, next_token = get_books(db_conn, user_id=user.id, limit=3)
+    second_page, _ = get_books(
+        db_conn, user_id=user.id, limit=3, next_token=next_token
+    )
+
+    first_ids = {b.id for b in first_page}
+    second_ids = {b.id for b in second_page}
+    assert first_ids.isdisjoint(second_ids)
+    assert len(second_page) == 2
+
+
+def test_get_books_pagination_covers_all(db_conn, user):
+    for i in range(5):
+        create_book(
+            db_conn,
+            user_id=user.id,
+            title=f"Book {i}",
+            author="Author",
+            status="not_started",
+        )
+
+    all_ids = set()
+    token = None
+    while True:
+        books, token = get_books(
+            db_conn, user_id=user.id, limit=2, next_token=token
+        )
+        all_ids.update(b.id for b in books)
+        if token is None:
+            break
+
+    assert len(all_ids) == 5
+
+
+def test_get_books_pagination_with_filter(db_conn, user):
+    for i in range(4):
+        create_book(
+            db_conn,
+            user_id=user.id,
+            title=f"Sci-Fi Book {i}",
+            author="Author",
+            status="not_started",
+            genre="Sci-Fi",
+        )
+    create_book(
+        db_conn,
+        user_id=user.id,
+        title="Fantasy Book",
+        author="Author",
+        status="not_started",
+        genre="Fantasy",
+    )
+
+    first_page, next_token = get_books(
+        db_conn, user_id=user.id, genre="Sci-Fi", limit=2
+    )
+    second_page, no_token = get_books(
+        db_conn, user_id=user.id, genre="Sci-Fi", limit=2,
+        next_token=next_token,
+    )
+
+    assert len(first_page) == 2
+    assert len(second_page) == 2
+    assert no_token is None
+    assert all(b.genre == "Sci-Fi" for b in first_page + second_page)
 
 
 # --- update_book ---

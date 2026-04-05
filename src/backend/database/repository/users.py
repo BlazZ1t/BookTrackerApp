@@ -1,7 +1,10 @@
+import logging
 import sqlite3
 from typing import Optional
 
-from src.backend.models.user import UserRecord
+from src.backend.database.models.user import UserRecord
+
+logger = logging.getLogger(__name__)
 
 
 def create_user(
@@ -9,27 +12,32 @@ def create_user(
     username: str,
     password_hash: str,
 ) -> UserRecord:
+    logger.debug("Creating user: username=%s", username)
     cursor = conn.execute(
         "INSERT INTO users (username, password_hash) VALUES (?, ?)",
         (username, password_hash),
     )
     conn.commit()
-    return UserRecord(
+    user = UserRecord(
         id=cursor.lastrowid,
         username=username,
         password_hash=password_hash,
     )
+    logger.debug("User created: id=%d, username=%s", user.id, user.username)
+    return user
 
 
 def get_user_by_username(
     conn: sqlite3.Connection,
     username: str,
 ) -> Optional[UserRecord]:
+    logger.debug("Fetching user by username: %s", username)
     row = conn.execute(
         "SELECT id, username, password_hash FROM users WHERE username = ?",
         (username,),
     ).fetchone()
     if row is None:
+        logger.debug("User not found: username=%s", username)
         return None
     return UserRecord(
         id=row["id"],
@@ -42,11 +50,13 @@ def get_user_by_id(
     conn: sqlite3.Connection,
     user_id: int,
 ) -> Optional[UserRecord]:
+    logger.debug("Fetching user by id: %d", user_id)
     row = conn.execute(
         "SELECT id, username, password_hash FROM users WHERE id = ?",
         (user_id,),
     ).fetchone()
     if row is None:
+        logger.debug("User not found: id=%d", user_id)
         return None
     return UserRecord(
         id=row["id"],
