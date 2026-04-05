@@ -3,11 +3,6 @@ from typing import Optional
 
 from src.backend.models.book import BookRecord
 
-_SELECT = (
-    "SELECT id, user_id, title, author, genre, total_pages, current_page, status"
-    " FROM books"
-)
-
 
 def _row_to_book(row: sqlite3.Row) -> BookRecord:
     return BookRecord(
@@ -60,7 +55,8 @@ def get_book_by_id(
     user_id: int,
 ) -> Optional[BookRecord]:
     row = conn.execute(
-        _SELECT + " WHERE id = ? AND user_id = ?",
+        "SELECT id, user_id, title, author, genre, total_pages,"
+        " current_page, status FROM books WHERE id = ? AND user_id = ?",
         (book_id, user_id),
     ).fetchone()
     return _row_to_book(row) if row else None
@@ -75,26 +71,15 @@ def get_books(
     genre: Optional[str] = None,
     status: Optional[str] = None,
 ) -> list[BookRecord]:
-    conditions = ["user_id = ?"]
-    params: list = [user_id]
-
-    if title is not None:
-        conditions.append("LOWER(title) LIKE '%' || LOWER(?) || '%'")
-        params.append(title)
-    if author is not None:
-        conditions.append("LOWER(author) LIKE '%' || LOWER(?) || '%'")
-        params.append(author)
-    if genre is not None:
-        conditions.append("LOWER(genre) = LOWER(?)")
-        params.append(genre)
-    if status is not None:
-        conditions.append("status = ?")
-        params.append(status)
-
-    where = " AND ".join(conditions)
     rows = conn.execute(
-        _SELECT + " WHERE " + where,
-        params,
+        "SELECT id, user_id, title, author, genre, total_pages,"
+        " current_page, status FROM books"
+        " WHERE user_id = ?"
+        " AND (? IS NULL OR LOWER(title) LIKE '%' || LOWER(?) || '%')"
+        " AND (? IS NULL OR LOWER(author) LIKE '%' || LOWER(?) || '%')"
+        " AND (? IS NULL OR LOWER(genre) = LOWER(?))"
+        " AND (? IS NULL OR status = ?)",
+        (user_id, title, title, author, author, genre, genre, status, status),
     ).fetchall()
     return [_row_to_book(row) for row in rows]
 
@@ -111,24 +96,19 @@ def update_book(
     current_page: Optional[int] = None,
     status: Optional[str] = None,
 ) -> Optional[BookRecord]:
-    fields = {
-        "title": title,
-        "author": author,
-        "genre": genre,
-        "total_pages": total_pages,
-        "current_page": current_page,
-        "status": status,
-    }
-    updates = {k: v for k, v in fields.items() if v is not None}
-    if not updates:
-        return get_book_by_id(conn, book_id, user_id)
-
-    set_clause = ", ".join(col + " = ?" for col in updates)
-    params = list(updates.values()) + [book_id, user_id]
-
     conn.execute(
-        "UPDATE books SET " + set_clause + " WHERE id = ? AND user_id = ?",
-        params,
+        """
+        UPDATE books SET
+            title        = COALESCE(?, title),
+            author       = COALESCE(?, author),
+            genre        = COALESCE(?, genre),
+            total_pages  = COALESCE(?, total_pages),
+            current_page = COALESCE(?, current_page),
+            status       = COALESCE(?, status)
+        WHERE id = ? AND user_id = ?
+        """,
+        (title, author, genre, total_pages, current_page, status,
+         book_id, user_id),
     )
     conn.commit()
     return get_book_by_id(conn, book_id, user_id)
