@@ -89,8 +89,12 @@ def test_get_book_by_id_not_found(db_conn, user):
     assert result is None
 
 
-def test_get_book_by_id_wrong_user_returns_none(db_conn, user, other_user, sample_book):
-    result = get_book_by_id(db_conn, book_id=sample_book.id, user_id=other_user.id)
+def test_get_book_by_id_wrong_user_returns_none(
+    db_conn, user, other_user, sample_book
+):
+    result = get_book_by_id(
+        db_conn, book_id=sample_book.id, user_id=other_user.id
+    )
 
     assert result is None
 
@@ -98,8 +102,20 @@ def test_get_book_by_id_wrong_user_returns_none(db_conn, user, other_user, sampl
 # --- get_books ---
 
 def test_get_books_returns_only_own_books(db_conn, user, other_user):
-    create_book(db_conn, user_id=user.id, title="Book A", author="Author A", status="not_started")
-    create_book(db_conn, user_id=other_user.id, title="Book B", author="Author B", status="not_started")
+    create_book(
+        db_conn,
+        user_id=user.id,
+        title="Book A",
+        author="Author A",
+        status="not_started",
+    )
+    create_book(
+        db_conn,
+        user_id=other_user.id,
+        title="Book B",
+        author="Author B",
+        status="not_started",
+    )
 
     books = get_books(db_conn, user_id=user.id)
 
@@ -108,8 +124,20 @@ def test_get_books_returns_only_own_books(db_conn, user, other_user):
 
 
 def test_get_books_no_filter_returns_all(db_conn, user):
-    create_book(db_conn, user_id=user.id, title="Book A", author="Author", status="not_started")
-    create_book(db_conn, user_id=user.id, title="Book B", author="Author", status="reading")
+    create_book(
+        db_conn,
+        user_id=user.id,
+        title="Book A",
+        author="Author",
+        status="not_started",
+    )
+    create_book(
+        db_conn,
+        user_id=user.id,
+        title="Book B",
+        author="Author",
+        status="reading",
+    )
 
     books = get_books(db_conn, user_id=user.id)
 
@@ -117,8 +145,20 @@ def test_get_books_no_filter_returns_all(db_conn, user):
 
 
 def test_get_books_filter_by_title_partial(db_conn, user):
-    create_book(db_conn, user_id=user.id, title="Harry Potter", author="Rowling", status="not_started")
-    create_book(db_conn, user_id=user.id, title="The Hobbit", author="Tolkien", status="not_started")
+    create_book(
+        db_conn,
+        user_id=user.id,
+        title="Harry Potter",
+        author="Rowling",
+        status="not_started",
+    )
+    create_book(
+        db_conn,
+        user_id=user.id,
+        title="The Hobbit",
+        author="Tolkien",
+        status="not_started",
+    )
 
     books = get_books(db_conn, user_id=user.id, title="harry")
 
@@ -127,8 +167,20 @@ def test_get_books_filter_by_title_partial(db_conn, user):
 
 
 def test_get_books_filter_by_author_partial(db_conn, user):
-    create_book(db_conn, user_id=user.id, title="Harry Potter", author="J.K. Rowling", status="not_started")
-    create_book(db_conn, user_id=user.id, title="The Hobbit", author="Tolkien", status="not_started")
+    create_book(
+        db_conn,
+        user_id=user.id,
+        title="Harry Potter",
+        author="J.K. Rowling",
+        status="not_started",
+    )
+    create_book(
+        db_conn,
+        user_id=user.id,
+        title="The Hobbit",
+        author="Tolkien",
+        status="not_started",
+    )
 
     books = get_books(db_conn, user_id=user.id, author="rowling")
 
@@ -137,8 +189,22 @@ def test_get_books_filter_by_author_partial(db_conn, user):
 
 
 def test_get_books_filter_by_genre_exact(db_conn, user):
-    create_book(db_conn, user_id=user.id, title="Dune", author="Herbert", status="not_started", genre="Sci-Fi")
-    create_book(db_conn, user_id=user.id, title="The Hobbit", author="Tolkien", status="not_started", genre="Fantasy")
+    create_book(
+        db_conn,
+        user_id=user.id,
+        title="Dune",
+        author="Herbert",
+        status="not_started",
+        genre="Sci-Fi",
+    )
+    create_book(
+        db_conn,
+        user_id=user.id,
+        title="The Hobbit",
+        author="Tolkien",
+        status="not_started",
+        genre="Fantasy",
+    )
 
     books = get_books(db_conn, user_id=user.id, genre="fantasy")
 
@@ -147,8 +213,20 @@ def test_get_books_filter_by_genre_exact(db_conn, user):
 
 
 def test_get_books_filter_by_status_exact(db_conn, user):
-    create_book(db_conn, user_id=user.id, title="Book A", author="Author", status="reading")
-    create_book(db_conn, user_id=user.id, title="Book B", author="Author", status="completed")
+    create_book(
+        db_conn,
+        user_id=user.id,
+        title="Book A",
+        author="Author",
+        status="reading",
+    )
+    create_book(
+        db_conn,
+        user_id=user.id,
+        title="Book B",
+        author="Author",
+        status="completed",
+    )
 
     books = get_books(db_conn, user_id=user.id, status="reading")
 
@@ -157,7 +235,14 @@ def test_get_books_filter_by_status_exact(db_conn, user):
 
 
 def test_get_books_filter_case_insensitive(db_conn, user):
-    create_book(db_conn, user_id=user.id, title="HARRY POTTER", author="ROWLING", status="not_started", genre="FANTASY")
+    create_book(
+        db_conn,
+        user_id=user.id,
+        title="HARRY POTTER",
+        author="ROWLING",
+        status="not_started",
+        genre="FANTASY",
+    )
 
     assert len(get_books(db_conn, user_id=user.id, title="harry")) == 1
     assert len(get_books(db_conn, user_id=user.id, author="rowling")) == 1
@@ -165,17 +250,46 @@ def test_get_books_filter_case_insensitive(db_conn, user):
 
 
 def test_get_books_combined_filters(db_conn, user):
-    create_book(db_conn, user_id=user.id, title="Dune", author="Herbert", status="reading", genre="Sci-Fi")
-    create_book(db_conn, user_id=user.id, title="Foundation", author="Asimov", status="reading", genre="Sci-Fi")
-    create_book(db_conn, user_id=user.id, title="The Hobbit", author="Tolkien", status="reading", genre="Fantasy")
+    create_book(
+        db_conn,
+        user_id=user.id,
+        title="Dune",
+        author="Herbert",
+        status="reading",
+        genre="Sci-Fi",
+    )
+    create_book(
+        db_conn,
+        user_id=user.id,
+        title="Foundation",
+        author="Asimov",
+        status="reading",
+        genre="Sci-Fi",
+    )
+    create_book(
+        db_conn,
+        user_id=user.id,
+        title="The Hobbit",
+        author="Tolkien",
+        status="reading",
+        genre="Fantasy",
+    )
 
-    books = get_books(db_conn, user_id=user.id, genre="Sci-Fi", status="reading")
+    books = get_books(
+        db_conn, user_id=user.id, genre="Sci-Fi", status="reading"
+    )
 
     assert len(books) == 2
 
 
 def test_get_books_no_match_returns_empty(db_conn, user):
-    create_book(db_conn, user_id=user.id, title="Dune", author="Herbert", status="not_started")
+    create_book(
+        db_conn,
+        user_id=user.id,
+        title="Dune",
+        author="Herbert",
+        status="not_started",
+    )
 
     books = get_books(db_conn, user_id=user.id, title="nonexistent")
 
@@ -185,7 +299,9 @@ def test_get_books_no_match_returns_empty(db_conn, user):
 # --- update_book ---
 
 def test_update_book_single_field(db_conn, user, sample_book):
-    updated = update_book(db_conn, book_id=sample_book.id, user_id=user.id, status="reading")
+    updated = update_book(
+        db_conn, book_id=sample_book.id, user_id=user.id, status="reading"
+    )
 
     assert updated is not None
     assert updated.status == "reading"
@@ -213,7 +329,9 @@ def test_update_book_no_fields_returns_unchanged(db_conn, user, sample_book):
     assert updated.status == sample_book.status
 
 
-def test_update_book_wrong_user_returns_none(db_conn, user, other_user, sample_book):
+def test_update_book_wrong_user_returns_none(
+    db_conn, user, other_user, sample_book
+):
     result = update_book(
         db_conn,
         book_id=sample_book.id,
@@ -225,7 +343,9 @@ def test_update_book_wrong_user_returns_none(db_conn, user, other_user, sample_b
 
 
 def test_update_book_not_found_returns_none(db_conn, user):
-    result = update_book(db_conn, book_id=999, user_id=user.id, status="reading")
+    result = update_book(
+        db_conn, book_id=999, user_id=user.id, status="reading"
+    )
 
     assert result is None
 
@@ -245,13 +365,19 @@ def test_delete_book_removes_from_db(db_conn, user, sample_book):
     assert found is None
 
 
-def test_delete_book_wrong_user_returns_false(db_conn, user, other_user, sample_book):
-    result = delete_book(db_conn, book_id=sample_book.id, user_id=other_user.id)
+def test_delete_book_wrong_user_returns_false(
+    db_conn, user, other_user, sample_book
+):
+    result = delete_book(
+        db_conn, book_id=sample_book.id, user_id=other_user.id
+    )
 
     assert result is False
 
 
-def test_delete_book_wrong_user_does_not_remove(db_conn, user, other_user, sample_book):
+def test_delete_book_wrong_user_does_not_remove(
+    db_conn, user, other_user, sample_book
+):
     delete_book(db_conn, book_id=sample_book.id, user_id=other_user.id)
 
     found = get_book_by_id(db_conn, book_id=sample_book.id, user_id=user.id)

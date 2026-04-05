@@ -31,7 +31,11 @@ def get_user_by_username(
     ).fetchone()
     if row is None:
         return None
-    return UserRecord(id=row["id"], username=row["username"], password_hash=row["password_hash"])
+    return UserRecord(
+        id=row["id"],
+        username=row["username"],
+        password_hash=row["password_hash"],
+    )
 
 
 def get_user_by_id(
@@ -44,4 +48,8 @@ def get_user_by_id(
     ).fetchone()
     if row is None:
         return None
-    return UserRecord(id=row["id"], username=row["username"], password_hash=row["password_hash"])
+    return UserRecord(
+        id=row["id"],
+        username=row["username"],
+        password_hash=row["password_hash"],
+    )
