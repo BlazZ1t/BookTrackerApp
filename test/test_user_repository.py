@@ -59,7 +59,14 @@ def test_get_user_by_id_found(db_conn):
     assert found.username == "alice"
 
 
+def test_create_user_id_is_uuid_string(db_conn):
+    user = create_user(db_conn, username="alice", password_hash="hash")
+
+    assert isinstance(user.id, str)
+    assert len(user.id) == 36
+
+
 def test_get_user_by_id_not_found(db_conn):
-    result = get_user_by_id(db_conn, user_id=999)
+    result = get_user_by_id(db_conn, user_id="nonexistent-id")
 
     assert result is None

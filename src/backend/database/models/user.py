@@ -3,6 +3,6 @@ from dataclasses import dataclass
 
 @dataclass
 class UserRecord:
-    id: int
+    id: str
     username: str
     password_hash: str

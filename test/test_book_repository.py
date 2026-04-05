@@ -46,7 +46,8 @@ def test_create_book_returns_record(db_conn, user):
     )
 
     assert isinstance(book, BookRecord)
-    assert book.id is not None
+    assert isinstance(book.id, str)
+    assert len(book.id) == 36
     assert book.user_id == user.id
     assert book.title == "Dune"
     assert book.author == "Herbert"

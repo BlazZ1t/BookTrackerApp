@@ -1,12 +1,12 @@
 CREATE TABLE IF NOT EXISTS users (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    id            TEXT    PRIMARY KEY,
     username      TEXT    NOT NULL UNIQUE,
     password_hash TEXT    NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS books (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id       INTEGER NOT NULL,
+    id            TEXT    PRIMARY KEY,
+    user_id       TEXT    NOT NULL,
     title         TEXT    NOT NULL,
     author        TEXT    NOT NULL,
     genre         TEXT,
@@ -16,3 +16,5 @@ CREATE TABLE IF NOT EXISTS books (
                           CHECK (status IN ('not_started', 'reading', 'completed')),
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
+
+CREATE INDEX IF NOT EXISTS idx_books_user_id ON books (user_id);

@@ -4,8 +4,8 @@ from typing import Optional
 
 @dataclass
 class BookRecord:
-    id: int
-    user_id: int
+    id: str
+    user_id: str
     title: str
     author: str
     genre: Optional[str]
