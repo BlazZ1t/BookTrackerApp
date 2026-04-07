@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
+from src.backend.api.routes import auth
 
 app = FastAPI()
 
@@ -12,7 +13,9 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+app.include_router(auth.router)
+
 
 @app.get("/")
 async def root():
-    return RedirectResponse(url="/auth/login")
+    return {"message": "Running!"}
