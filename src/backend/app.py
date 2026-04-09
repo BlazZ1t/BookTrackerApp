@@ -6,6 +6,7 @@ from src.backend.database.connection import init_db, get_connection
 
 from contextlib import asynccontextmanager
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     conn = get_connection()
