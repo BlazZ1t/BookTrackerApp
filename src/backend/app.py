@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.backend.api.routes import auth
+from src.backend.api.routes import auth, books
 
 from src.backend.database.connection import init_db, _get_connection
 
@@ -35,6 +35,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(books.router)
 
 
 @app.get("/")
