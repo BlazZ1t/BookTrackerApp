@@ -2,14 +2,18 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.backend.api.routes import auth
 
-from src.backend.database.connection import init_db, get_connection
+from src.backend.database.connection import init_db, _get_connection
 
 from contextlib import asynccontextmanager
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    conn = get_connection()
+    conn = _get_connection()
     try:
         init_db(conn)
     finally:

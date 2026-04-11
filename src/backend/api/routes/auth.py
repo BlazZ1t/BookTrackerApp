@@ -1,6 +1,5 @@
 import os
-from dotenv import load_dotenv
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import logging
 
 from fastapi import APIRouter, HTTPException, Depends
@@ -16,8 +15,7 @@ import sqlite3
 router = APIRouter(prefix="/auth")
 logger = logging.getLogger(__name__)
 
-load_dotenv()
-SECRET_KEY = os.getenv('JWT_KEY')
+SECRET_KEY = os.getenv('JWT_KEY', 'placeholder_key')
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 120
 
@@ -31,15 +29,16 @@ async def register(
     user: LoginRegisterRequest,
     database: sqlite3.Connection = Depends(get_database_connection)
 ):
-    if users_repository.get_user_by_username(database, user.login):
-        raise HTTPException(status_code=409,
-                            detail={"message": "Username already taken"}
-                            )
     password_hash = hash_password(user.password)
     try:
         users_repository.create_user(database, user.login, password_hash)
     except HTTPException as e:
         raise e
+    except sqlite3.IntegrityError as e:
+        logger.error(e)
+        raise HTTPException(status_code=409,
+                            detail={"message": "Username already taken"}
+                            )
     except Exception as e:
         logger.error(e)
         raise HTTPException(status_code=500,
@@ -92,6 +91,6 @@ def verify_password(password: str, hashed_password: str) -> bool:
 
 def create_jwt_token(data: dict, expires_delta: timedelta = timedelta(days=7)):
     to_encode = data.copy()
-    expire = datetime.now() + expires_delta
+    expire = datetime.now(timezone.utc) + expires_delta
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)

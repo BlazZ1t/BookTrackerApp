@@ -5,7 +5,7 @@ from typing import Iterator
 _MIGRATIONS_DIR = Path(__file__).parent / "migrations"
 
 
-def get_connection(db_path: str = "books.db") -> sqlite3.Connection:
+def _get_connection(db_path: str = "books.db") -> sqlite3.Connection:
     conn = sqlite3.connect(db_path, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
@@ -23,7 +23,7 @@ def get_database_connection() -> Iterator[sqlite3.Connection]:
         database: sqlite3.Connection = Depends(get_database_connection)
     ):
     """
-    conn = get_connection()
+    conn = _get_connection()
     try:
         yield conn
     finally:
