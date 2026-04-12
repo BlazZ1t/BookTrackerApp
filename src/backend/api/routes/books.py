@@ -20,6 +20,22 @@ router = APIRouter(prefix="/books", tags=["books"])
 logger = logging.getLogger(__name__)
 
 
+def _derive_status(
+    current_page: int,
+    total_pages: Optional[int],
+) -> Optional[str]:
+    """
+    Returns None when total_pages is not set (status cannot be derived)
+    """
+    if total_pages is None:
+        return None
+    if current_page == 0:
+        return BookStatus.not_started.value
+    if current_page >= total_pages:
+        return BookStatus.completed.value
+    return BookStatus.reading.value
+
+
 def _to_response(book: BookRecord) -> BookResponse:
     return BookResponse(
         id=book.id,
@@ -40,13 +56,17 @@ async def create_book(
     user_id: str = Depends(get_current_user_id),
     db: sqlite3.Connection = Depends(get_database_connection),
 ):
+    status = (
+        _derive_status(body.current_page, body.total_pages)
+        or body.status.value
+    )
     try:
         book = books_repository.create_book(
             db,
             user_id=user_id,
             title=body.title,
             author=body.author,
-            status=body.status.value,
+            status=status,
             genre=body.genre,
             total_pages=body.total_pages,
             current_page=body.current_page,
@@ -116,6 +136,27 @@ async def update_book(
     user_id: str = Depends(get_current_user_id),
     db: sqlite3.Connection = Depends(get_database_connection),
 ):
+    existing = books_repository.get_book_by_id(db, book_id, user_id)
+    if existing is None:
+        raise HTTPException(
+            status_code=404,
+            detail={"message": "Book not found"},
+        )
+
+    effective_current = (
+        body.current_page
+        if body.current_page is not None
+        else existing.current_page
+    )
+    effective_total = (
+        body.total_pages
+        if body.total_pages is not None
+        else existing.total_pages
+    )
+
+    derived = _derive_status(effective_current, effective_total)
+    status = derived or (body.status.value if body.status else None)
+
     try:
         book = books_repository.update_book(
             db,
@@ -126,7 +167,7 @@ async def update_book(
             genre=body.genre,
             total_pages=body.total_pages,
             current_page=body.current_page,
-            status=body.status.value if body.status else None,
+            status=status,
         )
     except Exception as e:
         logger.error("Failed to update book: %s", e)
