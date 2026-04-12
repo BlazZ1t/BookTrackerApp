@@ -318,7 +318,6 @@ def test_get_books_limit(db_conn, user):
     assert len(books) == 3
 
 
-
 def test_get_books_next_token_is_none_on_last_page(db_conn, user):
     for i in range(3):
         create_book(

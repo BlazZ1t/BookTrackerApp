@@ -10,7 +10,12 @@ from api import (
     update_book,
 )
 from constants import API_BASE_URL, BOOK_STATUS_OPTIONS
-from ui_helpers import calculate_progress, human_status, show_api_error, suggest_status
+from ui_helpers import (
+    calculate_progress,
+    human_status,
+    show_api_error,
+    suggest_status,
+)
 
 
 st.set_page_config(
@@ -47,8 +52,15 @@ def auth_screen() -> None:
     with tab_login:
         with st.form("login_form"):
             username = st.text_input("Username", key="login_username")
-            password = st.text_input("Password", type="password", key="login_password")
-            submit_login = st.form_submit_button("Log in", use_container_width=True)
+            password = st.text_input(
+                "Password",
+                type="password",
+                key="login_password",
+            )
+            submit_login = st.form_submit_button(
+                "Log in",
+                use_container_width=True,
+            )
 
         if submit_login:
             if not username or not password:
@@ -67,8 +79,15 @@ def auth_screen() -> None:
     with tab_register:
         with st.form("register_form"):
             username = st.text_input("Username", key="register_username")
-            password = st.text_input("Password", type="password", key="register_password")
-            submit_register = st.form_submit_button("Sign up", use_container_width=True)
+            password = st.text_input(
+                "Password",
+                type="password",
+                key="register_password",
+            )
+            submit_register = st.form_submit_button(
+                "Sign up",
+                use_container_width=True,
+            )
 
         if submit_register:
             if not username or not password:
@@ -104,7 +123,10 @@ def add_book_section(token: str) -> None:
                 value=0,
             )
 
-        suggested = suggest_status(current_page, total_pages_input if total_pages_input > 0 else None)
+        suggested = suggest_status(
+            current_page,
+            total_pages_input if total_pages_input > 0 else None,
+        )
         status = st.selectbox(
             "Status",
             options=BOOK_STATUS_OPTIONS,
@@ -152,7 +174,9 @@ def filters_sidebar() -> dict:
     status_filter = st.sidebar.selectbox(
         "Status",
         options=status_options,
-        format_func=lambda value: "All" if value == "" else human_status(value),
+        format_func=(
+            lambda value: "All" if value == "" else human_status(value)
+        ),
     )
 
     return {
@@ -194,8 +218,16 @@ def render_book_card(token: str, book: dict) -> None:
             with st.form(f"update_book_{book_id}"):
                 st.markdown("**Update the book**")
 
-                new_title = st.text_input("Title", value=title, key=f"title_{book_id}")
-                new_author = st.text_input("Author", value=author, key=f"author_{book_id}")
+                new_title = st.text_input(
+                    "Title",
+                    value=title,
+                    key=f"title_{book_id}",
+                )
+                new_author = st.text_input(
+                    "Author",
+                    value=author,
+                    key=f"author_{book_id}",
+                )
                 new_genre = st.text_input(
                     "Genre",
                     value="" if genre == "—" else genre,
@@ -220,23 +252,43 @@ def render_book_card(token: str, book: dict) -> None:
 
                 suggested = suggest_status(
                     int(new_current_page),
-                    int(new_total_pages_raw) if new_total_pages_raw > 0 else None,
+                    (
+                        int(new_total_pages_raw)
+                        if new_total_pages_raw > 0
+                        else None
+                    ),
                 )
                 new_status = st.selectbox(
                     "Status",
                     options=BOOK_STATUS_OPTIONS,
-                    index=BOOK_STATUS_OPTIONS.index(suggested if status not in BOOK_STATUS_OPTIONS else status),
+                    index=BOOK_STATUS_OPTIONS.index(
+                        suggested
+                        if status not in BOOK_STATUS_OPTIONS
+                        else status
+                    ),
                     format_func=human_status,
                     key=f"status_{book_id}",
                 )
 
-                save_clicked = st.form_submit_button("Save", use_container_width=True)
+                save_clicked = st.form_submit_button(
+                    "Save",
+                    use_container_width=True,
+                )
 
             if save_clicked:
-                new_total_pages = int(new_total_pages_raw) if new_total_pages_raw > 0 else None
+                new_total_pages = (
+                    int(new_total_pages_raw)
+                    if new_total_pages_raw > 0
+                    else None
+                )
 
-                if new_total_pages is not None and new_current_page > new_total_pages:
-                    st.warning("Current page cannot be bigger than the total amount.")
+                if (
+                    new_total_pages is not None
+                    and new_current_page > new_total_pages
+                ):
+                    st.warning(
+                        "Current page cannot be bigger than the total amount."
+                    )
                     return
 
                 payload = {
@@ -255,7 +307,11 @@ def render_book_card(token: str, book: dict) -> None:
                 except APIError as exc:
                     show_api_error(str(exc))
 
-            if st.button("Delete", key=f"delete_{book_id}", use_container_width=True):
+            if st.button(
+                "Delete",
+                key=f"delete_{book_id}",
+                use_container_width=True,
+            ):
                 try:
                     delete_book(token, book_id)
                     st.success("Book deleted.")
