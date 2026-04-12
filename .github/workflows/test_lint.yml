@@ -38,7 +38,7 @@ jobs:
 
       - name: Run tests
         run: |
-          poetry run pytest src/
+          poetry run pytest test/
 
       - name: Run Radon Cyclomatic Complexity
         run: poetry run radon cc -a -s src/
