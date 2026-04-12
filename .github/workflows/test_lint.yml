@@ -32,6 +32,14 @@ jobs:
         run: |
           poetry install --with test_lint --no-root
 
+      - name: Run Pytest-Cov Coverage
+        run: |
+          poetry run pytest --cov=src --cov-fail-under=70
+
+      - name: Run tests
+        run: |
+          poetry run pytest src/
+
       - name: Run Radon Cyclomatic Complexity
         run: poetry run radon cc -a -s src/
 
