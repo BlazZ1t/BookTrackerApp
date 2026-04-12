@@ -28,7 +28,7 @@ def _request(
     data: Optional[dict[str, Any]] = None,
     params: Optional[dict[str, Any]] = None,
 ) -> Any:
-    
+
     url = f"{API_BASE_URL}{path}"
     if params:
         clean_params = {

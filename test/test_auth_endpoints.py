@@ -90,7 +90,10 @@ def test_register_reraises_http_exception(client, monkeypatch):
     assert response.json() == {"detail": {"message": "teapot"}}
 
 
-def test_register_unexpected_error_returns_internal_server_error(client, monkeypatch):
+def test_register_unexpected_error_returns_internal_server_error(
+    client,
+    monkeypatch,
+):
     def raise_unexpected_error(*args, **kwargs):
         raise RuntimeError("database unavailable")
 
@@ -109,7 +112,10 @@ def test_register_unexpected_error_returns_internal_server_error(client, monkeyp
     assert response.json() == {"detail": {"message": "Internal server error"}}
 
 
-def test_login_unexpected_error_returns_internal_server_error(client, monkeypatch):
+def test_login_unexpected_error_returns_internal_server_error(
+    client,
+    monkeypatch,
+):
     def raise_unexpected_error(*args, **kwargs):
         raise RuntimeError("database unavailable")
 

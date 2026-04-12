@@ -35,7 +35,10 @@ def test_make_headers_without_token():
 
 
 def test_make_headers_with_token():
-    assert frontend_api._make_headers("token")["Authorization"] == "Bearer token"
+    assert (
+        frontend_api._make_headers("token")["Authorization"]
+        == "Bearer token"
+    )
 
 
 def test_request_sends_json_body_headers_and_clean_query_params(monkeypatch):
@@ -89,7 +92,9 @@ def test_request_wraps_non_json_response(monkeypatch):
         lambda request: FakeResponse("deleted"),
     )
 
-    assert frontend_api._request("GET", "/health") == {"raw_response": "deleted"}
+    assert frontend_api._request("GET", "/health") == {
+        "raw_response": "deleted",
+    }
 
 
 def test_request_raises_api_error_from_http_error_json_detail(monkeypatch):
@@ -99,7 +104,9 @@ def test_request_raises_api_error_from_http_error_json_detail(monkeypatch):
             code=409,
             msg="Conflict",
             hdrs=None,
-            fp=io.BytesIO(b'{"detail": {"message": "Username already taken"}}'),
+            fp=io.BytesIO(
+                b'{"detail": {"message": "Username already taken"}}',
+            ),
         )
 
     monkeypatch.setattr(frontend_api.urllib.request, "urlopen", fake_urlopen)
@@ -142,7 +149,11 @@ def test_request_raises_api_error_from_url_error(monkeypatch):
 
 def test_register_delegates_to_request(monkeypatch):
     calls = []
-    monkeypatch.setattr(frontend_api, "_request", lambda **kwargs: calls.append(kwargs) or {"ok": True})
+    monkeypatch.setattr(
+        frontend_api,
+        "_request",
+        lambda **kwargs: calls.append(kwargs) or {"ok": True},
+    )
 
     assert frontend_api.register("alice", "pass") == {"ok": True}
     assert calls == [
@@ -182,7 +193,11 @@ def test_get_books_accepts_books_items_list_and_unknown_shapes(monkeypatch):
             {"unexpected": []},
         ]
     )
-    monkeypatch.setattr(frontend_api, "_request", lambda **kwargs: next(responses))
+    monkeypatch.setattr(
+        frontend_api,
+        "_request",
+        lambda **kwargs: next(responses),
+    )
 
     assert frontend_api.get_books("jwt") == [{"id": "1"}]
     assert frontend_api.get_books("jwt") == [{"id": "2"}]
@@ -192,10 +207,20 @@ def test_get_books_accepts_books_items_list_and_unknown_shapes(monkeypatch):
 
 def test_book_actions_delegate_to_request(monkeypatch):
     calls = []
-    monkeypatch.setattr(frontend_api, "_request", lambda **kwargs: calls.append(kwargs) or {"ok": True})
+    monkeypatch.setattr(
+        frontend_api,
+        "_request",
+        lambda **kwargs: calls.append(kwargs) or {"ok": True},
+    )
 
-    assert frontend_api.create_book("jwt", {"title": "Dune"}) == {"ok": True}
-    assert frontend_api.update_book("jwt", "book-id", {"title": "Dune"}) == {"ok": True}
+    assert frontend_api.create_book("jwt", {"title": "Dune"}) == {
+        "ok": True,
+    }
+    assert frontend_api.update_book(
+        "jwt",
+        "book-id",
+        {"title": "Dune"},
+    ) == {"ok": True}
     assert frontend_api.delete_book("jwt", "book-id") == {"ok": True}
     assert frontend_api.get_book("jwt", "book-id") == {"ok": True}
     assert calls == [

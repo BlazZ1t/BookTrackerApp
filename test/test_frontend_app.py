@@ -39,7 +39,9 @@ class FakeSidebar:
         return self.text_values.pop(0)
 
     def selectbox(self, label, options, format_func):
-        self.calls.append(("selectbox", label, options, format_func(self.select_value)))
+        self.calls.append(
+            ("selectbox", label, options, format_func(self.select_value)),
+        )
         return self.select_value
 
 
@@ -169,7 +171,10 @@ def test_add_book_section_warns_when_required_fields_are_missing(monkeypatch):
 
     frontend_app.add_book_section("jwt")
 
-    assert ("warning", "Fields 'Title' and 'Author' are mandatory.") in fake_st.calls
+    assert (
+        "warning",
+        "Fields 'Title' and 'Author' are mandatory.",
+    ) in fake_st.calls
 
 
 def test_add_book_section_warns_when_current_page_exceeds_total(monkeypatch):
@@ -181,7 +186,10 @@ def test_add_book_section_warns_when_current_page_exceeds_total(monkeypatch):
 
     frontend_app.add_book_section("jwt")
 
-    assert ("warning", "Current page cannot be bigger than the total amount.") in fake_st.calls
+    assert (
+        "warning",
+        "Current page cannot be bigger than the total amount.",
+    ) in fake_st.calls
 
 
 def test_add_book_section_creates_book(monkeypatch):
@@ -191,7 +199,11 @@ def test_add_book_section_creates_book(monkeypatch):
     fake_st.submit_values = [True]
     created = []
     monkeypatch.setattr(frontend_app, "st", fake_st)
-    monkeypatch.setattr(frontend_app, "create_book", lambda token, payload: created.append((token, payload)))
+    monkeypatch.setattr(
+        frontend_app,
+        "create_book",
+        lambda token, payload: created.append((token, payload)),
+    )
 
     frontend_app.add_book_section("jwt")
 
@@ -219,7 +231,13 @@ def test_render_book_card_updates_book(monkeypatch):
     fake_st.submit_values = [True]
     updated = []
     monkeypatch.setattr(frontend_app, "st", fake_st)
-    monkeypatch.setattr(frontend_app, "update_book", lambda token, book_id, payload: updated.append((token, book_id, payload)))
+    monkeypatch.setattr(
+        frontend_app,
+        "update_book",
+        lambda token, book_id, payload: updated.append(
+            (token, book_id, payload),
+        ),
+    )
 
     frontend_app.render_book_card(
         "jwt",
@@ -259,7 +277,11 @@ def test_render_book_card_deletes_book(monkeypatch):
     fake_st.button_values = [True]
     deleted = []
     monkeypatch.setattr(frontend_app, "st", fake_st)
-    monkeypatch.setattr(frontend_app, "delete_book", lambda token, book_id: deleted.append((token, book_id)))
+    monkeypatch.setattr(
+        frontend_app,
+        "delete_book",
+        lambda token, book_id: deleted.append((token, book_id)),
+    )
 
     frontend_app.render_book_card(
         "jwt",
@@ -304,8 +326,16 @@ def test_books_screen_renders_books(monkeypatch):
     rendered = []
     monkeypatch.setattr(frontend_app, "st", fake_st)
     monkeypatch.setattr(frontend_app, "add_book_section", lambda token: None)
-    monkeypatch.setattr(frontend_app, "get_books", lambda **kwargs: [{"id": "book-id"}])
-    monkeypatch.setattr(frontend_app, "render_book_card", lambda token, book: rendered.append((token, book)))
+    monkeypatch.setattr(
+        frontend_app,
+        "get_books",
+        lambda **kwargs: [{"id": "book-id"}],
+    )
+    monkeypatch.setattr(
+        frontend_app,
+        "render_book_card",
+        lambda token, book: rendered.append((token, book)),
+    )
 
     frontend_app.books_screen()
 
@@ -318,8 +348,16 @@ def test_main_routes_to_books_screen_when_authenticated(monkeypatch):
     fake_st.session_state.is_authenticated = True
     calls = []
     monkeypatch.setattr(frontend_app, "st", fake_st)
-    monkeypatch.setattr(frontend_app, "books_screen", lambda: calls.append("books"))
-    monkeypatch.setattr(frontend_app, "auth_screen", lambda: calls.append("auth"))
+    monkeypatch.setattr(
+        frontend_app,
+        "books_screen",
+        lambda: calls.append("books"),
+    )
+    monkeypatch.setattr(
+        frontend_app,
+        "auth_screen",
+        lambda: calls.append("auth"),
+    )
 
     frontend_app.main()
 
@@ -330,8 +368,16 @@ def test_main_routes_to_auth_screen_when_anonymous(monkeypatch):
     fake_st = FakeStreamlit()
     calls = []
     monkeypatch.setattr(frontend_app, "st", fake_st)
-    monkeypatch.setattr(frontend_app, "books_screen", lambda: calls.append("books"))
-    monkeypatch.setattr(frontend_app, "auth_screen", lambda: calls.append("auth"))
+    monkeypatch.setattr(
+        frontend_app,
+        "books_screen",
+        lambda: calls.append("books"),
+    )
+    monkeypatch.setattr(
+        frontend_app,
+        "auth_screen",
+        lambda: calls.append("auth"),
+    )
 
     frontend_app.main()
 

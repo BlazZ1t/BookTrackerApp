@@ -26,7 +26,9 @@ def test_get_current_user_id_rejects_token_without_sub():
         get_current_user_id(_credentials(token))
 
     assert exc_info.value.status_code == 401
-    assert exc_info.value.detail == {"message": "Invalid token: missing subject"}
+    assert exc_info.value.detail == {
+        "message": "Invalid token: missing subject",
+    }
 
 
 def test_get_current_user_id_rejects_invalid_token():
