@@ -42,6 +42,7 @@ def logout() -> None:
     st.session_state.is_authenticated = False
     st.rerun()
 
+
 def _handle_login_submit(username: str, password: str) -> None:
     if not username or not password:
         st.warning("Fill out username and password.")
@@ -68,6 +69,7 @@ def _handle_register_submit(username: str, password: str) -> None:
         st.success("Successfully signed up. Now you can log in.")
     except APIError as exc:
         show_api_error(str(exc))
+
 
 def auth_screen() -> None:
     st.title("📚 Book Tracker")
@@ -107,6 +109,7 @@ def auth_screen() -> None:
         if submit_register:
             _handle_register_submit(username, password)
 
+
 def _build_book_payload(
     title: str,
     author: str,
@@ -133,6 +136,7 @@ def _build_book_payload(
         "status": status,
     }
 
+
 def add_book_section(token: str) -> None:
     st.subheader("Add a book")
 
@@ -143,8 +147,10 @@ def add_book_section(token: str) -> None:
             author = st.text_input("Author *")
             genre = st.text_input("Genre")
         with col2:
-            total_pages_input = st.number_input("Pages total", min_value=0, step=1, value=0)
-            current_page = st.number_input("Current page", min_value=0, step=1, value=0)
+            total_pages_input = st.number_input(
+                "Pages total", min_value=0, step=1, value=0)
+            current_page = st.number_input(
+                "Current page", min_value=0, step=1, value=0)
 
         suggested = suggest_status(
             current_page,
@@ -203,6 +209,7 @@ def filters_sidebar() -> dict:
         "status": status_filter,
     }
 
+
 def _extract_book_fields(book: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": book.get("id"),
@@ -214,8 +221,10 @@ def _extract_book_fields(book: dict[str, Any]) -> dict[str, Any]:
         "status": book.get("status", "not_started"),
     }
 
+
 def _render_book_info(book_data: dict[str, Any]) -> None:
-    progress = calculate_progress(book_data["current_page"], book_data["total_pages"])
+    progress = calculate_progress(
+        book_data["current_page"], book_data["total_pages"])
 
     st.markdown(f"### {book_data['title']}")
     st.write(f"**Author:** {book_data['author']}")
@@ -223,21 +232,28 @@ def _render_book_info(book_data: dict[str, Any]) -> None:
     st.write(f"**Status:** {human_status(book_data['status'])}")
 
     if book_data["total_pages"]:
-        st.write(f"**Pages:** {book_data['current_page']} / {book_data['total_pages']}")
+        st.write(
+            f"**Pages:** {book_data['current_page']} / "
+            f"{book_data['total_pages']}"
+        )
         st.progress(progress / 100)
         st.caption(f"Progress: {progress:.2f}%")
     else:
         st.write(f"**Current page:** {book_data['current_page']}")
         st.caption("Total amount is unknown")
 
-def _render_update_form(book_data: dict[str, Any]) -> tuple[bool, dict[str, Any] | None]:
+
+def _render_update_form(
+        book_data: dict[str, Any]) -> tuple[bool, dict[str, Any] | None]:
     book_id = book_data["id"]
 
     with st.form(f"update_book_{book_id}"):
         st.markdown("**Update the book**")
 
-        new_title = st.text_input("Title", value=book_data["title"], key=f"title_{book_id}")
-        new_author = st.text_input("Author", value=book_data["author"], key=f"author_{book_id}")
+        new_title = st.text_input(
+            "Title", value=book_data["title"], key=f"title_{book_id}")
+        new_author = st.text_input(
+            "Author", value=book_data["author"], key=f"author_{book_id}")
         new_genre = st.text_input(
             "Genre",
             value="" if book_data["genre"] == "—" else book_data["genre"],
@@ -264,7 +280,11 @@ def _render_update_form(book_data: dict[str, Any]) -> tuple[bool, dict[str, Any]
             int(new_current_page),
             int(new_total_pages_raw) if new_total_pages_raw > 0 else None,
         )
-        default_status = book_data["status"] if book_data["status"] in BOOK_STATUS_OPTIONS else suggested
+        default_status = (
+            book_data["status"]
+            if book_data["status"] in BOOK_STATUS_OPTIONS
+            else suggested
+        )
 
         new_status = st.selectbox(
             "Status",
@@ -289,7 +309,9 @@ def _render_update_form(book_data: dict[str, Any]) -> tuple[bool, dict[str, Any]
     )
     return True, payload
 
-def _handle_update_book(token: str, book_id: str, payload: dict[str, Any] | None) -> None:
+
+def _handle_update_book(
+        token: str, book_id: str, payload: dict[str, Any] | None) -> None:
     if payload is None:
         return
 
@@ -309,6 +331,7 @@ def _handle_delete_book(token: str, book_id: str) -> None:
     except APIError as exc:
         show_api_error(str(exc))
 
+
 def render_book_card(token: str, book: dict[str, Any]) -> None:
     book_data = _extract_book_fields(book)
 
@@ -324,7 +347,11 @@ def render_book_card(token: str, book: dict[str, Any]) -> None:
             if save_clicked:
                 _handle_update_book(token, book_data["id"], payload)
 
-            if st.button("Delete", key=f"delete_{book_data['id']}", use_container_width=True):
+            if st.button(
+                "Delete",
+                key=f"delete_{book_data['id']}",
+                use_container_width=True,
+            ):
                 _handle_delete_book(token, book_data["id"])
 
 
