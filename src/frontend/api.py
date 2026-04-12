@@ -4,7 +4,7 @@ import urllib.request
 import urllib.error
 from typing import Any, Optional
 
-from .constants import API_BASE_URL
+from constants import API_BASE_URL
 
 
 class APIError(Exception):
@@ -30,8 +30,6 @@ def _request(
 ) -> Any:
     
     url = f"{API_BASE_URL}{path}"
-    print("REQUEST START", method, path, data, params)
-    print("FULL URL", url)
     if params:
         clean_params = {
             key: value
@@ -55,8 +53,6 @@ def _request(
     try:
         with urllib.request.urlopen(req) as response:
             raw = response.read().decode("utf-8").strip()
-            print("RESPONSE STATUS:", response.status)
-            print("RESPONSE BODY:", raw)
             if not raw:
                 return None
 
@@ -67,8 +63,6 @@ def _request(
 
     except urllib.error.HTTPError as exc:
         error_text = exc.read().decode("utf-8", errors="ignore")
-        print("HTTP ERROR STATUS:", exc.code)
-        print("HTTP ERROR BODY:", error_text)
         try:
             error_json = json.loads(error_text)
             detail = error_json.get("detail", error_text)
@@ -81,7 +75,6 @@ def _request(
 
 
 def register(username: str, password: str) -> Any:
-    print("REGISTER CALLED", username)
     return _request(
         method="POST",
         path="/auth/register",

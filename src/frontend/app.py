@@ -1,6 +1,6 @@
 import streamlit as st
 
-from frontend.api import (
+from api import (
     APIError,
     create_book,
     delete_book,
@@ -9,8 +9,8 @@ from frontend.api import (
     register,
     update_book,
 )
-from frontend.constants import API_BASE_URL, BOOK_STATUS_OPTIONS
-from frontend.ui_helpers import calculate_progress, human_status, show_api_error, suggest_status
+from constants import API_BASE_URL, BOOK_STATUS_OPTIONS
+from ui_helpers import calculate_progress, human_status, show_api_error, suggest_status
 
 
 st.set_page_config(

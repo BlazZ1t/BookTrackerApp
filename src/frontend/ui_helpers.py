@@ -1,6 +1,6 @@
 import streamlit as st
 
-from .constants import BOOK_STATUSES
+from constants import BOOK_STATUSES
 
 
 def human_status(status: str) -> str:
