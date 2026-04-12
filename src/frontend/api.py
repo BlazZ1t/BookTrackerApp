@@ -1,8 +1,8 @@
 import json
+import urllib.error
 import urllib.parse
 import urllib.request
-import urllib.error
-from typing import Any, Optional
+from typing import Any
 
 from constants import API_BASE_URL
 
@@ -11,7 +11,7 @@ class APIError(Exception):
     pass
 
 
-def _make_headers(token: Optional[str] = None) -> dict[str, str]:
+def _make_headers(token: str | None = None) -> dict[str, str]:
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
@@ -21,55 +21,65 @@ def _make_headers(token: Optional[str] = None) -> dict[str, str]:
     return headers
 
 
+def _build_url(path: str, params: dict[str, Any] | None = None) -> str:
+    url = f"{API_BASE_URL}{path}"
+    if not params:
+        return url
+
+    clean_params = {
+        key: value
+        for key, value in params.items()
+        if value not in (None, "", [])
+    }
+    if clean_params:
+        url += "?" + urllib.parse.urlencode(clean_params)
+    return url
+
+
+def _encode_body(data: dict[str, Any] | None = None) -> bytes | None:
+    if data is None:
+        return None
+    return json.dumps(data).encode("utf-8")
+
+
+def _parse_response_body(raw: str) -> Any:
+    if not raw:
+        return None
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return {"raw_response": raw}
+
+
+def _extract_error_detail(exc: urllib.error.HTTPError) -> str:
+    error_text = exc.read().decode("utf-8", errors="ignore")
+    try:
+        error_json = json.loads(error_text)
+        return str(error_json.get("detail", error_text))
+    except json.JSONDecodeError:
+        return error_text or f"HTTP {exc.code}"
+
+
 def _request(
     method: str,
     path: str,
-    token: Optional[str] = None,
-    data: Optional[dict[str, Any]] = None,
-    params: Optional[dict[str, Any]] = None,
+    token: str | None = None,
+    data: dict[str, Any] | None = None,
+    params: dict[str, Any] | None = None,
 ) -> Any:
-
-    url = f"{API_BASE_URL}{path}"
-    if params:
-        clean_params = {
-            key: value
-            for key, value in params.items()
-            if value not in (None, "", [])
-        }
-        if clean_params:
-            url += "?" + urllib.parse.urlencode(clean_params)
-
-    body = None
-    if data is not None:
-        body = json.dumps(data).encode("utf-8")
-
     req = urllib.request.Request(
-        url=url,
-        data=body,
+        url=_build_url(path, params),
+        data=_encode_body(data),
         headers=_make_headers(token),
         method=method,
     )
 
     try:
-        with urllib.request.urlopen(req) as response:
+        with urllib.request.urlopen(req) as response:  # nosec B310
             raw = response.read().decode("utf-8").strip()
-            if not raw:
-                return None
-
-            try:
-                return json.loads(raw)
-            except json.JSONDecodeError:
-                return {"raw_response": raw}
-
+            return _parse_response_body(raw)
     except urllib.error.HTTPError as exc:
-        error_text = exc.read().decode("utf-8", errors="ignore")
-        try:
-            error_json = json.loads(error_text)
-            detail = error_json.get("detail", error_text)
-        except json.JSONDecodeError:
-            detail = error_text or f"HTTP {exc.code}"
-        raise APIError(str(detail)) from exc
-
+        raise APIError(_extract_error_detail(exc)) from exc
     except urllib.error.URLError as exc:
         raise APIError(f"Couldn't connect to API: {exc.reason}") from exc
 
